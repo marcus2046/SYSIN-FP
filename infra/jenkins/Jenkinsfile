@@ -26,6 +26,16 @@ pipeline {
                 sh 'docker compose up -d'
             }
         }
+
+        stage('Integration / Health Check') {
+            steps {
+                echo 'Running automated health checks...'
+                // Wait for Postgres and Node.js to initialize
+                sh 'sleep 5'
+                // Test if the application endpoint responds with HTTP 200
+                sh 'curl -f http://localhost:8081/ || exit 1'
+            }
+        }
     }
 
     post {
