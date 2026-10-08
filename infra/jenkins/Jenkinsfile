@@ -35,9 +35,9 @@ pipeline {
                 // Test if the application endpoint responds with HTTP 200
                 sh 'docker compose exec -T proxy curl -f http://localhost:80/'
             }
-        
+        }
     }
-
+}
     post {
         always {
             echo 'Pipeline execution complete.'
