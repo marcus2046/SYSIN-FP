@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Solo DevOps Project</title>
+    <style>
+        body { font-family: sans-serif; margin: 40px; background: #f4f4f9; }
+        .card { background: white; padding: 20px; border-radius: 8px; max-width: 500px; }
+        footer { margin-top: 20px; font-size: 0.8em; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Containerized Application</h1>
+        <p>System Status: <strong>Online</strong></p>
+        <button onclick="fetchItems()">Fetch DB Items</button>
+        <ul id="items"></ul>
+    </div>
+    <footer>Build Version: <span id="build-version">v1.0.0</span></footer>
+
+    <script>
+        async function fetchItems() {
+            try {
+                const res = await fetch('/api/items');
+                const data = await res.json();
+                const list = document.getElementById('items');
+                list.innerHTML = data.map(item => `<li>${item.name}</li>`).join('');
+            } catch (err) {
+                alert('Error fetching items');
+            }
+        }
+    </script>
+</body>
+</html>
