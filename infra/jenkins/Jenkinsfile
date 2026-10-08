@@ -1,0 +1,39 @@
+pipeline {
+    agent any
+
+    environment {
+        COMPOSE_PROJECT_NAME = 'sysin-fp'
+    }
+
+    stages {
+        stage('Quality Gate (Tests)') {
+            steps {
+                echo 'Running unit tests via Docker multi-stage build...'
+                sh 'docker build --target test -t myapp/api:test ./api'
+            }
+        }
+
+        stage('Build & Package') {
+            steps {
+                echo 'Building production container images...'
+                sh 'docker compose build'
+            }
+        }
+
+        stage('Deploy (Local Staging)') {
+            steps {
+                echo 'Deploying application stack...'
+                sh 'docker compose up -d'
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Pipeline execution complete.'
+        }
+        failure {
+            echo 'Pipeline failed! Check logs above.'
+        }
+    }
+}
