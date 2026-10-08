@@ -33,9 +33,9 @@ pipeline {
                 // Wait for Postgres and Node.js to initialize
                 sh 'sleep 5'
                 // Test if the application endpoint responds with HTTP 200
-                sh 'curl -f http://localhost:8081/ || exit 1'
+                sh 'docker compose exec -T proxy curl -f http://localhost:80/'
             }
-        }
+        
     }
 
     post {
