@@ -2,31 +2,277 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Solo DevOps Project</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Containerized Application Dashboard</title>
     <style>
-        body { font-family: sans-serif; margin: 40px; background: #f4f4f9; }
-        .card { background: white; padding: 20px; border-radius: 8px; max-width: 500px; }
-        footer { margin-top: 20px; font-size: 0.8em; color: #666; }
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: #1e293b;
+            --border-color: #334155;
+            --text-color: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-color: #38bdf8;
+            --accent-hover: #0ea5e9;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 16px;
+        }
+        h1 {
+            font-size: 1.5rem;
+            margin: 0 0 4px 0;
+        }
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin: 0;
+        }
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(16, 185, 129, 0.1);
+            color: #34d399;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #34d399;
+            border-radius: 50%;
+        }
+        /* Tab Navigation */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
+        }
+        .tab-btn {
+            background: #0f172a;
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+        .tab-btn.active {
+            background: var(--accent-color);
+            color: #0b0f19;
+            border-color: var(--accent-color);
+            font-weight: 600;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .btn {
+            background-color: var(--accent-color);
+            color: #0b0f19;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            width: 100%;
+            font-size: 0.95rem;
+        }
+        .btn:hover {
+            background-color: var(--accent-hover);
+        }
+        .data-section {
+            margin-bottom: 16px;
+        }
+        .data-header {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .item-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+        .item-card {
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px solid var(--border-color);
+            padding-top: 16px;
+            margin-top: 24px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+        .version-tag {
+            background: #0f172a;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h1>Containerized Application</h1>
-        <p>System Status: <strong>Online</strong></p>
-        <button onclick="fetchItems()">Fetch DB Items</button>
-        <ul id="items"></ul>
+
+    <div class="container">
+        <div class="header">
+            <div class="title-group">
+                <h1>Containerized Application</h1>
+                <p class="subtitle">Multi-Container Microservices Architecture</p>
+            </div>
+            <div class="status-badge">
+                <span class="status-dot"></span> Online
+            </div>
+        </div>
+
+        <!-- Tab Switcher Buttons -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('db', event)">Database Explorer</button>
+            <button class="tab-btn" onclick="switchTab('pokemon', event)">Pokémon Lookup</button>
+        </div>
+
+        <!-- TAB 1: Database View -->
+        <div id="dbTab" class="tab-content active">
+            <div class="actions" style="margin-bottom: 16px;">
+                <button class="btn" onclick="fetchItems()">Fetch DB Items</button>
+            </div>
+            <div class="data-section">
+                <div class="data-header">Database Query Results</div>
+                <ul id="itemList" class="item-list">
+                    <li class="item-card" style="color: var(--text-muted);">Click button to load records...</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- TAB 2: PokeAPI View -->
+        <div id="pokemonTab" class="tab-content">
+            <div class="data-section">
+                <div class="data-header" style="margin-bottom: 8px;">External Microservice Query</div>
+                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                    <input type="text" id="pokeInput" placeholder="Enter Pokémon (e.g. pikachu)" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: #0f172a; color: white; font-size: 0.9rem;">
+                    <button class="btn" style="width: auto; padding: 10px 16px;" onclick="searchPokemon()">Search</button>
+                </div>
+                <div id="pokeResult">
+                    <div class="item-card" style="color: var(--text-muted);">Search for any Pokémon above...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <span>Environment: Staging</span>
+            <span>Build Version: <span class="version-tag">v1.0.0</span></span>
+        </div>
     </div>
-    <footer>Build Version: <span id="build-version">v1.0.0</span></footer>
 
     <script>
+        function switchTab(tabName, event) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            if (tabName === 'db') {
+                document.getElementById('dbTab').classList.add('active');
+            } else {
+                document.getElementById('pokemonTab').classList.add('active');
+            }
+            event.currentTarget.classList.add('active');
+        }
+
         async function fetchItems() {
+            const listEl = document.getElementById('itemList');
+            listEl.innerHTML = '<li class="item-card" style="color: var(--text-muted);">Loading items...</li>';
             try {
-                const res = await fetch('/api/items');
-                const data = await res.json();
-                const list = document.getElementById('items');
-                list.innerHTML = data.map(item => `<li>${item.name}</li>`).join('');
+                const response = await fetch('/api/items');
+                const items = await response.json();
+                
+                if (items.length === 0) {
+                    listEl.innerHTML = '<li class="item-card" style="color: var(--text-muted);">No records found in database.</li>';
+                    return;
+                }
+                
+                listEl.innerHTML = items.map(item => `
+                    <li class="item-card">
+                        <strong>#${item.id}</strong> — ${item.name || JSON.stringify(item)}
+                    </li>
+                `).join('');
             } catch (err) {
-                alert('Error fetching items');
+                listEl.innerHTML = '<li class="item-card" style="color: #ef4444;">Failed to fetch database records.</li>';
+            }
+        }
+
+        async function searchPokemon() {
+            const nameInput = document.getElementById('pokeInput');
+            const resultDiv = document.getElementById('pokeResult');
+            const name = nameInput.value.trim().toLowerCase();
+            
+            if (!name) return;
+            
+            resultDiv.innerHTML = '<div class="item-card" style="color: var(--text-muted);">Searching Pokémon...</div>';
+            
+            try {
+                const response = await fetch(`/api/pokemon/${name}`);
+                const data = await response.json();
+                
+                if (!response.ok || data.error) {
+                    resultDiv.innerHTML = `<div class="item-card" style="color: #ef4444;">Pokémon not found!</div>`;
+                    return;
+                }
+                
+                resultDiv.innerHTML = `
+                    <div class="item-card" style="display: flex; align-items: center; gap: 16px;">
+                        <img src="${data.sprite}" alt="${data.name}" style="width: 60px; height: 60px; background: #0f172a; border-radius: 6px; border: 1px solid var(--border-color);">
+                        <div>
+                            <strong style="font-size: 1.05rem; text-transform: capitalize;">${data.name}</strong> <span style="color: var(--accent-color);">#${data.id}</span><br>
+                            <span style="color: var(--text-muted); font-size: 0.85rem; text-transform: capitalize;">Type: ${data.types.join(', ')}</span>
+                        </div>
+                    </div>
+                `;
+            } catch (err) {
+                resultDiv.innerHTML = `<div class="item-card" style="color: #ef4444;">Failed to fetch Pokémon data.</div>`;
             }
         }
     </script>
