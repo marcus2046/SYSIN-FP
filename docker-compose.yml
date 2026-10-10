@@ -1,61 +1,86 @@
+name: sysin-fp
+
 services:
   proxy:
     build: ./proxy
-    image: myapp/proxy:${TAG:-latest}
+    image: sysin-fp/proxy:${TAG:-dev}
     ports:
-      - "8081:80"
+      - "${HTTP_PORT:-8081}:8080"
     depends_on:
-      - frontend
-      - api
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:80/ >/dev/null || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      frontend:
+        condition: service_healthy
+      items-api:
+        condition: service_healthy
+      pokemon-api:
+        condition: service_healthy
     networks:
       - app-net
+    restart: unless-stopped
 
   frontend:
-    build: ./frontend
-    image: myapp/frontend:${TAG:-latest}
+    build:
+      context: ./frontend
+      args:
+        BUILD_NUMBER: ${TAG:-dev}
+    image: sysin-fp/frontend:${TAG:-dev}
     networks:
       - app-net
+    restart: unless-stopped
 
-  api:
+  items-api:
     build:
-      context: ./api
+      context: ./items-api
       target: production
-    image: myapp/api:${TAG:-latest}
+    image: sysin-fp/items-api:${TAG:-dev}
     environment:
+      PORT: "3000"
       DB_HOST: db
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME}
+      DB_PORT: "5432"
+      DB_USER: ${DB_USER:?set DB_USER in .env}
+      DB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+      DB_NAME: ${DB_NAME:?set DB_NAME in .env}
     depends_on:
       db:
         condition: service_healthy
     networks:
       - app-net
+      - db-net
+    restart: unless-stopped
 
-  db:
-    image: postgres:16-alpine
+  pokemon-api:
+    build:
+      context: ./pokemon-api
+      target: production
+    image: sysin-fp/pokemon-api:${TAG:-dev}
     environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
-    volumes:
-      - db-data:/var/lib/postgresql/data
-      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      PORT: "3001"
     networks:
       - app-net
+    restart: unless-stopped
 
-volumes:
-  db-data:
+  db:
+    build: ./db
+    image: sysin-fp/db:pg16
+    environment:
+      POSTGRES_USER: ${DB_USER:?set DB_USER in .env}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+      POSTGRES_DB: ${DB_NAME:?set DB_NAME in .env}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - db-net
+    restart: unless-stopped
 
 networks:
   app-net:
+  db-net:
+    internal: true
+
+volumes:
+  db-data:

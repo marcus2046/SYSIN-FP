@@ -1,0 +1,42 @@
+graph TB
+subgraph Client ["Browser (Laptop / LAN)"]
+    User["User / Developer"]
+end
+
+subgraph AppStack ["Docker Compose Project: sysin-fp"]
+    subgraph AppNet ["app-net (Bridge Network)"]
+        Proxy["proxy<br/>(nginxinc/nginx-unprivileged:1.27-alpine)<br/>Container Port: 8080"]
+        Frontend["frontend<br/>(static HTML)<br/>Container Port: 8080"]
+        PokemonAPI["pokemon-api<br/>(Node.js 22)<br/>Container Port: 3001"]
+        ItemsAPI["items-api<br/>(Node.js 22)<br/>Container Port: 3000"]
+    end
+
+    subgraph DbNet ["db-net (internal: true)"]
+        DB["db<br/>(postgres:16-alpine)<br/>Container Port: 5432"]
+    end
+
+    DBVolume[("Volume: db-data<br/>/var/lib/postgresql/data")]
+    DB --- DBVolume
+end
+
+subgraph JenkinsStack ["Docker Compose Project: sysin-fp-jenkins"]
+    Jenkins["jenkins-ci<br/>(jenkins/jenkins:lts)<br/>Container Port: 8080"]
+    JenkinsVolume[("Volume: jenkins-data<br/>/var/jenkins_home")]
+    Jenkins --- JenkinsVolume
+end
+
+subgraph External ["External Services"]
+    PokeAPI["pokeapi.co"]
+    GitHub["GitHub Repository"]
+end
+
+User -- "http://localhost:8081<br/>(ONLY published app port)" --> Proxy
+Proxy -- "/" --> Frontend
+Proxy -- "/api/pokemon/*" --> PokemonAPI
+Proxy -- "/api/*" --> ItemsAPI
+PokemonAPI -- "HTTP GET" --> PokeAPI
+ItemsAPI -- "TCP 5432" --> DB
+
+User -- "git push" --> GitHub
+GitHub -- "Webhook / Poll" --> Jenkins
+Jenkins -- "Mount /var/run/docker.sock" --> AppStack

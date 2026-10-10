@@ -1,11 +1,12 @@
+name: sysin-fp-jenkins
+
 services:
   jenkins:
     build:
       context: .
       dockerfile: Dockerfile
-    image: local/jenkins-docker:latest
+    image: sysin-fp/jenkins-ci:latest
     container_name: jenkins-ci
-    user: root
     ports:
       - "8080:8080"
       - "50000:50000"
