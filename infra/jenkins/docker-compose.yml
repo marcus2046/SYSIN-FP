@@ -1,6 +1,9 @@
 services:
   jenkins:
-    image: jenkins/jenkins:lts-jdk17
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: local/jenkins-docker:latest
     container_name: jenkins-ci
     user: root
     ports:

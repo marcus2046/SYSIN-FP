@@ -9,21 +9,22 @@ pipeline {
         stage('Quality Gate (Tests)') {
             steps {
                 echo 'Running unit tests via Docker multi-stage build...'
-                sh 'docker build --target test -t myapp/api:test ./api'
+                sh 'docker build --pull --target test -t myapp/api:test ./api'
             }
         }
 
         stage('Build & Package') {
             steps {
                 echo 'Building production container images...'
-                sh 'docker compose build'
+                sh 'docker compose config --quiet'
+                sh 'docker compose build --pull'
             }
         }
 
         stage('Deploy (Local Staging)') {
             steps {
                 echo 'Deploying application stack...'
-                sh 'docker compose up -d'
+                sh 'docker compose up --pull missing -d --wait --wait-timeout 60'
             }
         }
 
@@ -33,7 +34,7 @@ pipeline {
                 // Wait for Postgres and Node.js to initialize
                 sh 'sleep 5'
                 // Test if the application endpoint responds with HTTP 200
-                sh 'docker compose exec -T proxy curl -f http://localhost:80/'
+                sh 'docker compose exec -T proxy wget -qO- http://127.0.0.1:80/'
             }
         }
     }
