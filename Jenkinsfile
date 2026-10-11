@@ -1,19 +1,19 @@
 pipeline {
   agent any
   environment {
-    COMPOSE_PROJECT_NAME = 'sysin-fp'            // same project as `name:` in compose
-    TAG = "${env.BUILD_NUMBER}"                  // -> sysin-fp/<service>:<TAG>
+    COMPOSE_PROJECT_NAME = 'sysin-fp'
+    TAG = "${env.BUILD_NUMBER}"
   }
   triggers {
-    githubPush()                                 // webhook (via ngrok), and/or:
-    pollSCM('H/2 * * * *')                       // fallback — "Build Now" does not count as automatic
+    githubPush()
+    pollSCM('H/2 * * * *')
   }
   options { disableConcurrentBuilds(); buildDiscarder(logRotator(numToKeepStr: '15')) }
 
   stages {
     stage('Checkout') { steps { checkout scm } }
 
-    stage('Test') {                              // MUST fail the build before Deploy
+    stage('Test') {
       steps {
         sh 'docker build --no-cache-filter test --target test -t sysin-fp/items-api:test ./items-api'
         sh 'docker build --no-cache-filter test --target test -t sysin-fp/pokemon-api:test ./pokemon-api'
@@ -22,9 +22,8 @@ pipeline {
 
     stage('Build Images') {
       steps {
-        // .env is needed here too, because compose validates the ${VAR:?} entries
         withCredentials([file(credentialsId: 'sysin-fp-env', variable: 'ENV_FILE')]) {
-          sh 'cp "$ENV_FILE" .env'
+          sh 'rm -f .env && cp "$ENV_FILE" .env'
           sh 'docker compose build'
         }
       }
@@ -33,13 +32,13 @@ pipeline {
     stage('Deploy') {
       steps {
         withCredentials([file(credentialsId: 'sysin-fp-env', variable: 'ENV_FILE')]) {
-          sh 'cp "$ENV_FILE" .env'
+          sh 'rm -f .env && cp "$ENV_FILE" .env'
           sh 'docker compose up -d --no-build --remove-orphans --wait --wait-timeout 120'
         }
       }
     }
 
-    stage('Smoke Test') {                        // runs INSIDE the compose network via the proxy container
+    stage('Smoke Test') {
       steps {
         sh '''
           for i in $(seq 1 12); do
