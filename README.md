@@ -9,11 +9,11 @@ A small multi-container web application that is built, tested and deployed autom
 
 | Role | Member |
 |---|---|
-| Project Lead / Scrum Master | _Surname, Firstname MI._ |
-| DevOps / CI-CD Engineer | _Surname, Firstname MI._ |
-| Infrastructure Engineer | _Surname, Firstname MI._ |
-| Backend and Database Engineer | _Surname, Firstname MI._ |
-| Frontend, QA, and Documentation Lead | _Surname, Firstname MI._ |
+| Project Lead / Scrum Master | Fausto, Marcus |
+| DevOps / CI-CD Engineer | Lucky, Luciano |
+| Infrastructure Engineer | Ruby, Lorenz David |
+| Backend and Database Engineer | Kenji, Ballares |
+| Frontend, QA, and Documentation Lead | Dy Guazo, Johnathan |
 
 ## Application modules
 
