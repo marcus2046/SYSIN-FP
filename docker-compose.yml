@@ -2,7 +2,7 @@ name: sysin-fp
 
 services:
   proxy:
-    build: ./proxy
+    build: ./frontend
     image: sysin-fp/proxy:${TAG:-dev}
     ports:
       - "${HTTP_PORT:-8081}:8080"
