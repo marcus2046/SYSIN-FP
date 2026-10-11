@@ -13,7 +13,7 @@ A small multi-container web application that is built, tested and deployed autom
 | DevOps / CI-CD Engineer | Lucky, Luciano |
 | Infrastructure Engineer | Ruby, Lorenz David |
 | Backend and Database Engineer | Kenji, Ballares |
-| Frontend, QA, and Documentation Lead | Dy Guazo, Johnathan |
+| Frontend, QA, and Documentation Lead | Dy Guazo, Jonathan |
 
 ## Application modules
 
