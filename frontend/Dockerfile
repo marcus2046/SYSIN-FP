@@ -1,26 +1,15 @@
 # syntax=docker/dockerfile:1
 
-# ---- render: stamp the build number into the HTML ----
+# ---- render stage: stamp build number ----
 FROM alpine:3.20 AS render
 ARG BUILD_NUMBER=dev
 COPY index.html /index.html
 RUN sed -i "s/__BUILD_NUMBER__/${BUILD_NUMBER}/g" /index.html
 
-# ---- production: unprivileged nginx serving static files ----
+# ---- production stage: unprivileged nginx on port 8080 ----
 FROM nginxinc/nginx-unprivileged:1.27-alpine AS production
 COPY --from=render /index.html /usr/share/nginx/html/index.html
 EXPOSE 8080
+
 HEALTHCHECK --interval=15s --timeout=3s --start-period=5s --retries=3 \
   CMD wget -qO- http://127.0.0.1:8080/ >/dev/null || exit 1
-
-FROM nginx:alpine
-
-ARG BUILD_NUMBER=dev
-ENV BUILD_NUMBER=${BUILD_NUMBER}
-
-COPY . /usr/share/nginx/html
-
-# Inject the build number dynamically into index.html if using standard template placeholder
-RUN sed -i "s/id=\"build\">[^<]*/id=\"build\">${BUILD_NUMBER}/g" /usr/share/nginx/html/index.html || true
-
-EXPOSE 80

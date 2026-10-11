@@ -2,7 +2,7 @@ name: sysin-fp
 
 services:
   proxy:
-    build: ./frontend
+    build: ./proxy
     image: sysin-fp/proxy:${TAG:-dev}
     ports:
       - "${HTTP_PORT:-8081}:8080"
@@ -25,6 +25,12 @@ services:
     image: sysin-fp/frontend:${TAG:-dev}
     networks:
       - app-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
     restart: unless-stopped
 
   items-api:
