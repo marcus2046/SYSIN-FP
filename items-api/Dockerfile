@@ -3,7 +3,7 @@
 # ---- Stage 1: Full Dependencies ----
 FROM node:22-alpine AS deps
 WORKDIR /app
-COPY package.json package-lock.json* ./
+COPY package*.json ./
 RUN npm ci
 
 # ---- Stage 2: Test Gate ----
@@ -14,7 +14,7 @@ RUN npm test
 # ---- Stage 3: Production Dependencies ----
 FROM node:22-alpine AS prod-deps
 WORKDIR /app
-COPY package.json package-lock.json* ./
+COPY package*.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 
 # ---- Stage 4: Production Runtime ----
