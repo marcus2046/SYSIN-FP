@@ -1,16 +1,20 @@
-FROM jenkins/jenkins:lts-jdk21
+FROM jenkins/jenkins:lts-jdk17
 
 USER root
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates curl gnupg \
-    && install -m 0755 -d /etc/apt/keyrings \
-    && curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc \
-    && chmod a+r /etc/apt/keyrings/docker.asc \
-    && . /etc/os-release \
-    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian ${VERSION_CODENAME} stable" > /etc/apt/sources.list.d/docker.list \
-    && apt-get update \
-    && apt-get install -y --no-install-recommends docker-ce-cli docker-compose-plugin \
-    && rm -rf /var/lib/apt/lists/*
+# Install Docker CLI using Docker's official automated script
+RUN apt-get update && \
+    apt-get install -y ca-certificates curl && \
+    curl -fsSL https://get.docker.com | sh && \
+    rm -rf /var/lib/apt/lists/*
+
+# Add jenkins user to docker group if it exists
+RUN groupadd -f docker && usermod -aG docker jenkins
 
 USER jenkins
+
+# http://localhost:8080/ - password: 7e57bd79e9d1448fa528f2c2d4db3ad6
+# Username: LorenzInfrastructure
+# Password: 12345
+# Fullname: Lorenz David Ruby
+# E-mail address: lorenzdavidruby@gmail.com
