@@ -3,26 +3,37 @@ const app = express();
 
 app.use(express.json());
 
+// Health check endpoint
 app.get('/health', (req, res) => {
-res.status(200).json({ status: 'ok', module: 'pokemon-api' });
+  res.status(200).json({ status: 'healthy', timestamp: new Date() });
 });
 
+// GET /pokemon/:name (proxy handles /api/pokemon/pikachu -> /pokemon/pikachu)
 app.get('/pokemon/:name', async (req, res) => {
-try {
-const { name } = req.params;
-const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${name}`);
-if (!response.ok) {
-  return res.status(response.status).json({ error: 'Pokemon not found' });
-}
-const data = await response.json();
-res.json({ name: data.name, id: data.id, types: data.types.map(t => t.type.name) });
-} catch (err) {
-res.status(502).json({ error: 'Failed to reach PokeAPI' });
-}
+  try {
+    const pokemonName = req.params.name.toLowerCase();
+    const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonName}`);
+    
+    if (!response.ok) {
+      return res.status(404).json({ error: 'Pokémon not found' });
+    }
+    
+    const data = await response.json();
+    
+    res.json({
+      name: data.name,
+      id: data.id,
+      sprite: data.sprites.front_default,
+      types: data.types.map(t => t.type.name)
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch from PokeAPI' });
+  }
 });
 
 if (require.main === module) {
-app.listen(process.env.PORT || 3001, () => console.log('pokemon-api listening on port 3001'));
+  const PORT = process.env.PORT || 3001;
+  app.listen(PORT, () => console.log(`pokemon-api running on port ${PORT}`));
 }
 
 module.exports = app;

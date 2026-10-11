@@ -2,22 +2,32 @@ const express = require('express');
 const { Pool } = require('pg');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+
+const dbUser = process.env.DB_USER;
+const dbPassword = process.env.DB_PASSWORD;
+const dbName = process.env.DB_NAME;
+const dbHost = process.env.DB_HOST;
+
+if (!dbUser || !dbPassword || !dbName || !dbHost) {
+  console.warn('Warning: Missing database configuration environment variables.');
+}
 
 const pool = new Pool({
-  host: process.env.DB_HOST || 'db',
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'postgres',
-  database: process.env.DB_NAME || 'mydatabase',
-  port: 5432,
+  host: dbHost,
+  user: dbUser,
+  password: dbPassword,
+  database: dbName,
+  port: parseInt(process.env.DB_PORT || '5432', 10),
 });
 
 app.use(express.json());
 
+// Health check endpoint (does NOT hit DB)
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'healthy', timestamp: new Date() });
 });
 
+// GET /items (proxy handles /api/items -> /items)
 app.get('/items', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM items ORDER BY id ASC');
@@ -26,26 +36,27 @@ app.get('/items', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-// Pokémon Lookup Route (without /api prefix)
-app.get('/pokemon/:name', async (req, res) => {
-    try {
-        const pokemonName = req.params.name.toLowerCase();
-        const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonName}`);
-        
-        if (!response.ok) {
-            return res.status(404).json({ error: 'Pokémon not found' });
-        }
-        
-        const data = await response.json();
-        
-        res.json({
-            name: data.name,
-            id: data.id,
-            sprite: data.sprites.front_default,
-            types: data.types.map(t => t.type.name)
-        });
-    } catch (err) {
-        res.status(500).json({ error: 'Failed to fetch from PokeAPI' });
+
+// POST /items (DB write requirement)
+app.post('/items', async (req, res) => {
+  try {
+    const { name } = req.body;
+    if (!name) {
+      return res.status(400).json({ error: 'Name is required' });
     }
+    const result = await pool.query(
+      'INSERT INTO items(name) VALUES($1) RETURNING *',
+      [name]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
-app.listen(PORT, () => console.log(`API running on port ${PORT}`));
+
+if (require.main === module) {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => console.log(`items-api running on port ${PORT}`));
+}
+
+module.exports = app;
