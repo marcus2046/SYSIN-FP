@@ -26,8 +26,8 @@ pipeline {
     stage('Test') {
       steps {
         // Enforce quality gates inside isolated container targets
-        sh 'docker build --no-cache-filter test --target test -t sysin-fp/items-api:test ./items-api'
-        sh 'docker build --no-cache-filter test --target test -t sysin-fp/pokemon-api:test ./pokemon-api'
+        sh 'docker build --no-cache --target test -t sysin-fp/items-api:test ./items-api'
+        sh 'docker build --no-cache --target test -t sysin-fp/pokemon-api:test ./pokemon-api'
       }
     }
 
