@@ -12,7 +12,7 @@ A small multi-container web application that is built, tested and deployed autom
 | Project Lead / Scrum Master | Fausto, Marcus |
 | DevOps / CI-CD Engineer | Lucky, Luciano |
 | Infrastructure Engineer | Ruby, Lorenz David |
-| Backend and Database Engineer | Felix, Ballares |
+| Backend and Database Engineer | Ballares, Felix |
 | Frontend, QA, and Documentation Lead | Dy Guazo, Jonathan |
 
 ## Application modules
