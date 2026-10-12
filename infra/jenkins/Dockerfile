@@ -12,9 +12,3 @@ RUN apt-get update && \
 RUN groupadd -f docker && usermod -aG docker jenkins
 
 USER jenkins
-
-# http://localhost:8080/ - password: 7e57bd79e9d1448fa528f2c2d4db3ad6
-# Username: LorenzInfrastructure
-# Password: 12345
-# Fullname: Lorenz David Ruby
-# E-mail address: lorenzdavidruby@gmail.com
